@@ -88,7 +88,7 @@ def output_template(data, future=6):
     prepend[0] = f'The predicted value for the next {future} hours is {data}.'
     prepend[1] = f'The future charging occupancy for the next {future} hours is {data}.'
     prepend[2] = f'I predict Charging Occupancy for the next {future} hours to be approximately {data}.'
-    idx = int(np.random.randint(len(responses), size=1))
+    idx = int(np.random.randint(len(prepend), size=1))
     return prepend[idx]
 
 

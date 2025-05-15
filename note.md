@@ -5,6 +5,4 @@ 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  guo
 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 mine
 
 
-cuda version 11.2
-
-
+ Driver Version: 576.02         CUDA Version: 12.9
