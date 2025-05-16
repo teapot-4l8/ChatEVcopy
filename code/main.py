@@ -6,6 +6,7 @@ import torch
 import random
 from model_interface import MInterface
 from data_interface import MyDataModule
+import os
 
 
 def load_callbacks(args):
@@ -38,6 +39,13 @@ def main(args):
     print(f"Welcome to ChatEV! Now, we are working on Charging Data: {args.data_name}.")
     L.seed_everything(args.seed)
     
+    # Memory optimizations
+    torch.set_float32_matmul_precision('medium')
+    torch.cuda.empty_cache()
+    
+    # Set environment variable for memory optimization
+    os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
+    
     callbacks = load_callbacks(args)
     model = MInterface(**vars(args))
     if args.ckpt:
@@ -60,14 +68,36 @@ def main(args):
                     print(f"We are now in the {i}/{args.outer_loop} outer epoch and the {j}/{args.inner_loop} zone.")
                     args.zone = random_zones[j]
                     data_module = MyDataModule(args)
-                    trainer = pl.Trainer(devices=[int(args.cuda)], accelerator='cuda', max_epochs=1, logger=True, callbacks=callbacks)  # each zone one epoch
+                    trainer = pl.Trainer(
+                        devices=[int(args.cuda)],
+                        accelerator='cuda',
+                        max_epochs=1,
+                        logger=True,
+                        callbacks=callbacks,
+                        precision='16-mixed',  # Enable mixed precision
+                        gradient_clip_val=1.0,  # Add gradient clipping
+                        accumulate_grad_batches=2,  # Add gradient accumulation
+                        enable_progress_bar=True,
+                        deterministic=True,
+                    )
                     trainer.fit(model=model, datamodule=data_module)  # train and valid
             trainer.test(model=model, datamodule=data_module)  # test  
             
         # normal learning          
         else:
             data_module = MyDataModule(args)
-            trainer = pl.Trainer(devices=[int(args.cuda)], accelerator='cuda', max_epochs=args.max_epochs, logger=True, callbacks=callbacks)  # single device: default: 0. If you wanna use multiple devices, you can edit the param "devices", such as devices=[0, 1]. 
+            trainer = pl.Trainer(
+                devices=[int(args.cuda)],
+                accelerator='cuda',
+                max_epochs=args.max_epochs,
+                logger=True,
+                callbacks=callbacks,
+                precision='16-mixed',  # Enable mixed precision
+                gradient_clip_val=1.0,  # Add gradient clipping
+                accumulate_grad_batches=2,  # Add gradient accumulation
+                enable_progress_bar=True,
+                deterministic=True,
+            )
             trainer.fit(model=model, datamodule=data_module)  # train and valid
             trainer.test(model=model, datamodule=data_module)  # test
 

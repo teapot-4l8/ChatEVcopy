@@ -1,4 +1,5 @@
 import argparse
+import re
 
 
 # configurations
@@ -20,7 +21,7 @@ def parse_args():
     parser.add_argument('--lr_decay_min_lr', default=1e-9, type=float)
     parser.add_argument('--lr_warmup_start_lr', default=1e-7, type=float)
     parser.add_argument('--auto_lr_find', default=False, action='store_true')
-    parser.add_argument('--batch_size', default=8, type=int)
+    parser.add_argument('--batch_size', default=8, type=int)  # need to be reduced
     parser.add_argument('--max_epochs', default=10, type=int)
     
     # llm
@@ -33,7 +34,7 @@ def parse_args():
     
     # --------------- prediction ------------------------
     parser.add_argument('--data_name', default='occupancy', type=str)
-    parser.add_argument('--zone', default=42, type=int)  
+    parser.add_argument('--zone', default=42, type=int)  # here
     parser.add_argument('--pre_len', default=6, type=int)
     parser.add_argument('--seq_len', default=12, type=int)
     

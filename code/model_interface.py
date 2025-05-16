@@ -138,14 +138,24 @@ class MInterface(pl.LightningModule):
         y_true = []
         y_pre = []
         for predict, label in zip(self.val_content['generated_text'], self.val_content['label']):
-            predict = re.findall(pattern, predict)[-1]
-            label = float(re.findall(pattern, label)[0])
-            try:
-                predict = float(predict)
-            except:
-                predict = 0
-            y_pre.append(predict)
-            y_true.append(label)
+            pred_matches = re.findall(pattern, predict)
+            label_matches = re.findall(pattern, label)
+            if pred_matches and label_matches:
+                pred_value = pred_matches[-1]
+                label_value = label_matches[0]
+                try:
+                    pred_value = float(pred_value)
+                except:
+                    pred_value = 0
+                try:
+                    label_value = float(label_value)
+                except:
+                    label_value = 0
+                y_pre.append(pred_value)
+                y_true.append(label_value)
+            else:
+                # Optionally, log or handle missing predictions/labels
+                continue
         mae = mean_absolute_error(y_true, y_pre)
 
         # save logs
@@ -178,14 +188,24 @@ class MInterface(pl.LightningModule):
         y_true = []
         y_pre = []
         for predict, label in zip(self.test_content['generated_text'], self.test_content['label']):
-            predict = re.findall(pattern, predict)[-1]
-            label = float(re.findall(pattern, label)[0])
-            try:
-                predict = float(predict)
-            except:
-                predict = 0
-            y_pre.append(predict)
-            y_true.append(label)
+            pred_matches = re.findall(pattern, predict)
+            label_matches = re.findall(pattern, label)
+            if pred_matches and label_matches:
+                pred_value = pred_matches[-1]
+                label_value = label_matches[0]
+                try:
+                    pred_value = float(pred_value)
+                except:
+                    pred_value = 0
+                try:
+                    label_value = float(label_value)
+                except:
+                    label_value = 0
+                y_pre.append(pred_value)
+                y_true.append(label_value)
+            else:
+                # Optionally, log or handle missing predictions/labels
+                continue
         mae = mean_absolute_error(y_true, y_pre)
 
         # save logs
@@ -242,20 +262,26 @@ class MInterface(pl.LightningModule):
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch_dtype,
             bnb_4bit_use_double_quant=True,
+            llm_int8_threshold=6.0,
+            llm_int8_has_fp16_weight=False,
         )
 
+        # Enable gradient checkpointing
         model = AutoModelForCausalLM.from_pretrained(
             model_id,
             token=hf_token,
             quantization_config=bnb_config,
-            device_map=self.cuda,
+            device_map="auto",  # Changed from self.cuda to "auto"
             cache_dir=cache_dir,
-            attn_implementation=attn_implementation
+            attn_implementation=attn_implementation,
+            torch_dtype=torch_dtype,
         )
+        model.gradient_checkpointing_enable()  # Enable gradient checkpointing
 
+        # Optimize LoRA config
         peft_config = LoraConfig(
-            r=16,
-            lora_alpha=32,
+            r=8,  # Reduced from 16
+            lora_alpha=16,  # Reduced from 32
             lora_dropout=0.05,
             bias="none",
             task_type="CAUSAL_LM",

@@ -3,6 +3,7 @@ import torch.utils.data as data
 from lightning.pytorch.demos.boring_classes import RandomDataset
 import pandas as pd
 import numpy as np
+from sklearn.metrics import mean_absolute_error
 
 # 
 import prompts
@@ -29,16 +30,33 @@ class MyDataModule(pl.LightningDataModule):
             self.predict = MyDataset(self.test_data, self.inf, self.seq_len, self.pre_len, self.data_name)
 
 
-    def train_dataloader(self):  # default module in pytorch lightning
-        return data.DataLoader(self.train, batch_size=self.batch_size, shuffle=True)
+    def train_dataloader(self):
+        return data.DataLoader(
+            self.train, 
+            batch_size=self.batch_size, 
+            shuffle=True,
+            num_workers=0,  # Reduce memory usage
+            pin_memory=True  # Enable pin memory for faster data transfer
+        )
 
 
-    def val_dataloader(self):  # default module in pytorch lightning
-        return data.DataLoader(self.valid, batch_size=self.batch_size, shuffle=True)
+    def val_dataloader(self):
+        return data.DataLoader(
+            self.valid, 
+            batch_size=self.batch_size, 
+            shuffle=False,  # Changed to False for validation
+            num_workers=0,
+            pin_memory=True
+        )
 
 
-    def test_dataloader(self):  # default module in pytorch lightning
-        return data.DataLoader(self.test, batch_size=self.batch_size)
+    def test_dataloader(self):
+        return data.DataLoader(
+            self.test, 
+            batch_size=self.batch_size,
+            num_workers=0,
+            pin_memory=True
+        )
     
     
     def load_meta_data(self, data_name, zone, args, train_ratio=0.8, valid_ratio=0.1):
