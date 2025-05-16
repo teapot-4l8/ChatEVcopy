@@ -21,12 +21,12 @@ def parse_args():
     parser.add_argument('--lr_decay_min_lr', default=1e-9, type=float)
     parser.add_argument('--lr_warmup_start_lr', default=1e-7, type=float)
     parser.add_argument('--auto_lr_find', default=False, action='store_true')
-    parser.add_argument('--batch_size', default=8, type=int)  # need to be reduced
+    parser.add_argument('--batch_size', default=1, type=int)  # need to be reduced deafult = 8
     parser.add_argument('--max_epochs', default=10, type=int)
     
     # llm
-    parser.add_argument('--max_input_length', default=1024, type=int)
-    parser.add_argument('--max_gen_length', default=32, type=int)
+    parser.add_argument('--max_input_length', default=128, type=int)  # default=1024
+    parser.add_argument('--max_gen_length', default=8, type=int)  #  default=32
     
     # checkpoint
     parser.add_argument('--ckpt', default=False, action='store_true')

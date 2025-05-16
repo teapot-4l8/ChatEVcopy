@@ -36,7 +36,7 @@ class MyDataModule(pl.LightningDataModule):
             batch_size=self.batch_size, 
             shuffle=True,
             num_workers=0,  # Reduce memory usage
-            pin_memory=True  # Enable pin memory for faster data transfer
+            pin_memory=False  # Enable pin memory for faster data transfer
         )
 
 
@@ -46,7 +46,7 @@ class MyDataModule(pl.LightningDataModule):
             batch_size=self.batch_size, 
             shuffle=False,  # Changed to False for validation
             num_workers=0,
-            pin_memory=True
+            pin_memory=False
         )
 
 
@@ -55,7 +55,7 @@ class MyDataModule(pl.LightningDataModule):
             self.test, 
             batch_size=self.batch_size,
             num_workers=0,
-            pin_memory=True
+            pin_memory=False
         )
     
     
